@@ -6,9 +6,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Users extends Component
 {
+    use WithFileUploads;
     // public $title = "User Page - Livewire";
 
     #[Validate('required|min:3')]
@@ -20,6 +22,9 @@ class Users extends Component
     #[Validate('required|min:3')]
     public $password = '';
 
+    #[Validate('image|max:10000')]
+    public $avatar;
+
     public function createNewUser()
     {
         // $validated = $this->validate([
@@ -29,14 +34,20 @@ class Users extends Component
         // ]);
 
         // dd("button clicked!");
+        // sleep(2);
 
         // panggil validasi sblum kirim data
-        $this->validate();
+        $validated  = $this->validate();
+
+        if ($this->avatar) {
+            $validated['avatar'] = $this->avatar->store('avatars', 'public');
+        }
 
         User::create([
             "name" => $this->name,
             "email" => $this->email,
-            "password" => Hash::make($this->password)
+            "password" => Hash::make($this->password),
+            "avatar" => $validated['avatar']
         ]);
 
         // alt
@@ -53,7 +64,8 @@ class Users extends Component
         $this->reset([
             "name",
             "email",
-            "password"
+            "password",
+            "avatar"
         ]);
 
         session()->flash('success', 'User created successfully.');
